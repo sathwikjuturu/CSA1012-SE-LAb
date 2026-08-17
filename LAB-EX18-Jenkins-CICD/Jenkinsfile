@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                echo 'Checking out source code'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                bat 'docker build -t lab-ex18-app .'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                bat 'docker run --rm lab-ex18-app python -m pytest'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                bat 'docker stop lab-ex18-container || exit 0'
+                bat 'docker rm lab-ex18-container || exit 0'
+                bat 'docker run -d -p 5000:5000 --name lab-ex18-container lab-ex18-app'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'CI/CD Pipeline completed successfully!'
+        }
+
+        failure {
+            echo 'CI/CD Pipeline failed!'
+        }
+    }
+}
